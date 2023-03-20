@@ -1,30 +1,43 @@
 const express = require("express");
-const app = express();
-const port = 8181;
+const fs = require("fs");
+//to conver to json
 const bodyParser = require("body-parser");
 const cors = require("cors");
+
+const app = express();
+const port = 8181;
+
+//app.use always excuted as steps
 app.use(bodyParser.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
-const users = [{ email: "dania@gmail.com", pass: "1234", id: 1 }];
-app.get("/", (req, res) => {
-  //   const { email, pass } = req.body;
-  //   console.log({ email: email, pass: pass });
+
+app.get("/persons", (req, res) => {
+  const users = JSON.parse(fs.readFileSync(__dirname + "\\" + "persons.json"));
   res.send(users);
-});
-app.post("/", (req, res) => {
-  const { email, pass } = req.body;
-  users.push({ email: email, pass: pass });
-  res.send(users);
-  console.log(users);
 });
 
-app.post("/api/my-endpoint", (req, res) => {
-  console.log("get record ");
-  const message = req.body.message;
-  console.log(message); // "Hello server!"
-  res.end("Thanks for your message!");
+app.post("/persons", (req, res) => {
+  const { email, pass } = req.body;
+
+  const users = JSON.parse(fs.readFileSync(__dirname + "\\" + "persons.json"));
+
+  users.push({ email: email, pass: pass });
+
+  fs.writeFileSync(__dirname + "\\" + "persons.json", JSON.stringify(users));
+  res.send(users);
 });
+
+app.delete("/persons", (req, res) => {
+  const users = JSON.parse(fs.readFileSync(__dirname + "\\" + "persons.json"));
+
+  const deletedUser = users.shift();
+
+  fs.writeFileSync(__dirname + "\\" + "persons.json", JSON.stringify(users));
+
+  res.send(deletedUser);
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
