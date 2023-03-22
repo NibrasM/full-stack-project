@@ -4,11 +4,17 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const utils = require("./utils");
 
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+
 //  middleware - code runs in the middle - after req is recived, before response
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json());
 //  req.body now will not be empty!
-server.use(cors());
+server.use(cors({ origin: "localhost:8181", credentials: true }));
+
+server.use(cookieParser());
 
 server.use((req, res, next) => {
   const { method, url } = req;
@@ -35,7 +41,31 @@ server.post("/signup", async (req, res) => {
 });
 
 // to do
-server.post("/login", (req, res) => {});
+server.post("/login", async (req, res) => {
+  const { userName, password } = req.body;
+
+  const file = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "userData.json"))
+  );
+
+  const found = file.some((user) => user.userName === userName);
+
+  if (!found) {
+    console.log("user not found");
+    res.end("false");
+    return;
+  }
+  const passCompResult = await bcrypt.compare(password, found.password);
+  if (passCompResult) {
+    const token = jwt.sign({ type: "Admin" }, "my secret key", {
+      expiresIn: "1h",
+    });
+    console.log("yes you are here ");
+    res.cookie("token", token);
+    res.end("true");
+    return;
+  }
+});
 
 server.listen(8181, () => {
   console.log("server listens on port 8181");
