@@ -11,10 +11,12 @@ export default function Login() {
   function handleSubmit(e, type) {
     e.preventDefault();
     if (values.userName && values.password) {
-      const headers = new Headers();
-      headers.append("content-type", "application/json");
+      //   const headers = new Headers();
+      //   headers.append("content-type", "application/json");
       fetch(`http://localhost:8181/${type}`, {
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+        },
         method: "POST",
         credentials: "include",
         body: JSON.stringify(values),
